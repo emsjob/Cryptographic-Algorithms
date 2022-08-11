@@ -11,27 +11,27 @@ def prime_generation(n):
 
     if n < 2:
         return []
-    
+
     nums = []
     isPrime = []
-    
+
     for i in range(0, n + 1):
         nums.append(i)
         isPrime.append(True)
-        
+
     isPrime[0] = False
     isPrime[1] = False
-    
-    for j in range(2,int(n/2)):
+
+    for j in range(2, int(n / 2)):
         if isPrime[j] == True:
-            for i in range(2*j,n+1,j):
+            for i in range(2 * j, n + 1, j):
                 isPrime[i] = False
-                
+
     primes = []
-    for i in range(0, n+1):
+    for i in range(0, n + 1):
         if isPrime[i] == True:
             primes.append(nums[i])
-            
+
     return primes
 
 
@@ -42,16 +42,16 @@ def quadratic_residue(a, n):
     x = q ** l
     if x == 0:
         return 1
-        
+
     a %= n
     z = 1
-    while x!= 0:
+    while x != 0:
         if x % 2 == 0:
-            a = (a**2) % n
+            a = (a ** 2) % n
             x //= 2
         else:
             x -= 1
-            z = (z*a) % n
+            z = (z * a) % n
 
     return z
 
@@ -61,7 +61,7 @@ def shanks_tonelli(n, p):
     assert quadratic_residue(n, p) == 1, "not a square (mod p)"
     q = p - 1
     s = 0
-    
+
     while q % 2 == 0:
         q //= 2
         s += 1
@@ -99,7 +99,7 @@ def get_factor_base(N, B):
 
     factor_base = []
     primes = prime_generation(B)
-    
+
     for p in primes:
         if quadratic_residue(N, p) == 1:
             factor_base.append(p)
@@ -109,7 +109,7 @@ def get_factor_base(N, B):
 
 def get_smooth_numbers(factor_base, N, I):
 
-    sieve_seq = [x**2 - N for x in range(root, root + I)]
+    sieve_seq = [x ** 2 - N for x in range(root, root + I)]
 
     sieve_list = sieve_seq.copy()
 
@@ -123,16 +123,16 @@ def get_smooth_numbers(factor_base, N, I):
 
     for p in factor_base[1:]:
         residues = shanks_tonelli(N, p)
-        
+
         for r in residues:
-            for i in range((r-root) % p, len(sieve_list), p):
+            for i in range((r - root) % p, len(sieve_list), p):
                 while sieve_list[i] % p == 0:
                     sieve_list[i] //= p
 
     xlist = []
     smooth_numbers = []
     indices = []
-    
+
     for i in range(len(sieve_list)):
         if len(smooth_numbers) >= len(factor_base) + T:
             break
@@ -157,7 +157,7 @@ def factor(n, factor_base):
             while n % p == 0:
                 factors.append(p)
                 n //= p
-    
+
     return factors
 
 
@@ -167,19 +167,21 @@ def generate_matrix(smooth_numbers, factor_base):
     factor_base.insert(0, -1)
 
     for n in smooth_numbers:
-        exponent_vector = [0]*(len(factor_base))
+        exponent_vector = [0] * (len(factor_base))
         n_factors = factor(n, factor_base)
 
         for i in range(len(factor_base)):
             if factor_base[i] in n_factors:
-                exponent_vector[i] = (exp_vector[i] + n_factors.count(factor_base[i])) % 2
+                exponent_vector[i] = (
+                    exp_vector[i] + n_factors.count(factor_base[i])
+                ) % 2
 
         if 1 not in exponent_vector:
             return True, n
         else:
             pass
-        
-        M.append(exponent_vector)  
+
+        M.append(exponent_vector)
 
     return False, transpose(M)
 
@@ -197,41 +199,41 @@ def transpose(matrix):
 
 
 def gauss_elimination(M):
-    
+
     marks = [False] * len(M[0])
-    
+
     for i in range(len(M)):
         row = M[i]
-        
+
         for num in row:
             if num == 1:
                 j = row.index(num)
                 marks[j] = True
-                
+
                 for k in chain(range(0, i), range(i + 1, len(M))):
                     if M[k][j] == 1:
                         for i in range(len(M[k])):
                             M[k][i] = (M[k][i] + row[i]) % 2
                 break
-    
+
     M = transpose(M)
-        
+
     row_solution = []
     for i in range(len(marks)):
-        if marks[i]== False:
+        if marks[i] == False:
             free_row = [M[i], i]
             row_solution.append(free_row)
-    
+
     return row_solution, marks, M
 
 
-def solve_row(row_solution, M, marks, K = 0):
+def solve_row(row_solution, M, marks, K=0):
 
     vector_solution, indices = [], []
     free_row = row_solution[K][0]
 
     for i in range(len(free_row)):
-        if free_row[i] == 1: 
+        if free_row[i] == 1:
             indices.append(i)
 
     for r in range(len(M)):
@@ -239,28 +241,28 @@ def solve_row(row_solution, M, marks, K = 0):
             if M[r][i] == 1 and marks[r]:
                 vector_solution.append(r)
                 break
-            
-    vector_solution.append(row_solution[K][1])       
+
+    vector_solution.append(row_solution[K][1])
 
     return vector_solution
 
 
 def solve(vector_solution, smooth_numbers, xlist, N):
-    
+
     solution_nums = [smooth_numbers[i] for i in vector_solution]
     x_nums = [xlist[i] for i in vector_solution]
-    
+
     square = 1
     for n in solution_nums:
         square *= n
-        
+
     b = 1
     for n in x_nums:
         b *= n
 
     a = sqrt(square)
-    
-    factor = gcd(b-a,N)
+
+    factor = gcd(b - a, N)
 
     return factor
 
@@ -270,17 +272,17 @@ def pollard(N):
 
     a = 2
     B = floor(sqrt(N)) + 1
-    
+
     for i in range(2, B):
-        a = (a**i) % N
+        a = (a ** i) % N
         d = gcd(a - 1, N)
         if d > 1 and d < N:
-            return d, N//d
+            return d, N // d
 
 
 # Quadratic sieve
 def quadratic_sieve(n, B, I):
-    
+
     global N
     global root
     global T
@@ -290,69 +292,70 @@ def quadratic_sieve(n, B, I):
 
     global F
     F = len(factor_base)
-    
+
     smooth_numbers, xlist, indices = get_smooth_numbers(factor_base, N, I)
-    
+
     is_square, t_matrix = generate_matrix(smooth_numbers, factor_base)
-    
+
     if is_square == True:
         x = smooth_numbers.index(t_matrix)
         factor = gcd(xlist[x] + sqrt(t_matrix), N)
-        return factor, N/factor
-    
+        return factor, N / factor
+
     row_solution, marks, M = gauss_elimination(t_matrix)
     vector_solution = solve_row(row_solution, M, marks, 0)
-    
+
     factor = solve(vector_solution, smooth_numbers, xlist, N)
 
     for K in range(1, len(row_solution)):
-        if (factor == 1 or factor == N):
+        if factor == 1 or factor == N:
             vector_solution = solve_row(row_solution, M, marks, K)
             factor = solve(vector_solution, smooth_numbers, xlist, N)
         else:
-            return factor, int(N/factor)
-            
-            
+            return factor, int(N / factor)
+
+
 def main_calc(N):
 
     B = floor(sqrt(N)) + 1
     I = B * 3
-    print('Factoring {}'.format(N))
-    print('...')
+    print("Factoring {}".format(N))
+    print("...")
 
     start1 = time.time()
     x1 = pollard(N)
-    
-    end1 = time.time()
-    print('Pollard result {}'.format(x1))
-    print('Pollard time: {0:.4f}'.format(end1 - start1))
 
-    if N > 10**14:
+    end1 = time.time()
+    print("Pollard result {}".format(x1))
+    print("Pollard time: {0:.4f}".format(end1 - start1))
+
+    if N > 10 ** 14:
         return end1 - start1, inf
 
     start2 = time.time()
     x2 = quadratic_sieve(N, B, I)
     end2 = time.time()
-    print('QS result: {}'.format(x2))
-    print('QS time: {0:.4f}'.format(end2 - start2))
+    print("QS result: {}".format(x2))
+    print("QS time: {0:.4f}".format(end2 - start2))
 
-    print('====================')
+    print("====================")
     return end1 - start1, end2 - start2
 
-if __name__ == '__main__':
-  
-    N1 = 83177*28909
-    N2 = 970061*931097
-    N3 = 51199*25541
-    N4 = 61051*95261
-    N5 = 422621*18149
-    N6 = 44101*200153
-    N7 = 144271*72869
-    N8 = 84047*216851
-    N9 = 148639*58211
-    N10 = 144611*74297
-    N11 = 766916207*85560361
-    N12 = 7280783129*78263737
+
+if __name__ == "__main__":
+
+    N1 = 83177 * 28909
+    N2 = 970061 * 931097
+    N3 = 51199 * 25541
+    N4 = 61051 * 95261
+    N5 = 422621 * 18149
+    N6 = 44101 * 200153
+    N7 = 144271 * 72869
+    N8 = 84047 * 216851
+    N9 = 148639 * 58211
+    N10 = 144611 * 74297
+    N11 = 766916207 * 85560361
+    N12 = 7280783129 * 78263737
 
     a1, b1 = main_calc(N1)
     a2, b2 = main_calc(N2)
@@ -366,21 +369,29 @@ if __name__ == '__main__':
     a10, b10 = main_calc(N10)
     a11, b11 = main_calc(N11)
     a12, b12 = main_calc(N12)
-    
-    
+
     pollard = np.mean([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12])
     quadratic_sieve = np.mean([b1, b2, b3, b4, b5, b6, b7, b8, b9, b10])
 
     print(pollard)
     print(quadratic_sieve)
 
-
-    plt.plot([1,2,3,4,5,6,7,8,9,10, 11, 12], np.log([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]), linestyle='-', label="Pollard's p-1", color='c')
-    plt.plot([1,2,3,4,5,6,7,8,9,10, 11, 12], np.log([b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12]), linestyle='--', label='Quadratic sieve', color='m')
+    plt.plot(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        np.log([a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12]),
+        linestyle="-",
+        label="Pollard's p-1",
+        color="c",
+    )
+    plt.plot(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        np.log([b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12]),
+        linestyle="--",
+        label="Quadratic sieve",
+        color="m",
+    )
     plt.legend()
-    plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
-    plt.ylabel('Logarithmic time (s)')
-    plt.xlabel('Integers factored')
+    plt.tick_params(axis="x", which="both", bottom=False, top=False, labelbottom=False)
+    plt.ylabel("Logarithmic time (s)")
+    plt.xlabel("Integers factored")
     plt.show()
-    
-
